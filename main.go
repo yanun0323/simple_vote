@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	if err := config.Init("config", true); err != nil {
+	if err := config.Init("config", true, "./config", "../config", "../../config"); err != nil {
 		slog.Error("config.Init", "err", err.Error())
 	}
 
