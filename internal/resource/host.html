@@ -1,0 +1,399 @@
+<!-- create a html file using embed vue -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%ROOM_TITLE%</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC&family=Noto+Sans+TC&display=swap"
+        rel="stylesheet">
+</head>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import { createApp, ref } from 'https://unpkg.com/vue@3.2.37/dist/vue.esm-browser.js'
+
+    createApp({
+        data() {
+            return {
+                ws: new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/host'),
+                uid: localStorage.getItem('uid'),
+                round: 0,
+                roundEndTime: Date.now(),
+                gameOver: false,
+                leftTime: 0,
+                countdownID: 0,
+                dashboard: [],
+                candidates: [
+                    {name:'明逵叔叔 相恩'},
+                    {name:'海文叔叔 睿馨'},
+                    {name:'程偉恩 程宇昕'},
+                    {name:'靖唐叔叔 慕桓'},
+                    {name:'大衛牧師 書毅'},
+                    {name:'張明俊 張芸禎'},
+                    {name:'康明叔叔 美瑜'},
+                    {name:'米豆家 '},
+                    {name:'吳慶章 葉裕猷 葉允霏'}
+                ]
+            }
+        },
+        computed: {
+            isVoting() {
+                return this.leftTime > 500
+            }
+        },
+        methods: {
+            copy() {
+                // Copy the text inside the text field
+
+                navigator.clipboard.writeText('%ROOM_LINK%');
+
+                // Alert the copied text
+                alert("Copied: " + '%ROOM_LINK%');
+            },
+            startVote() {
+                if (this.leftTime != 0) {
+                    return
+                }
+                
+                this.ws.send(JSON.stringify({
+                    round: {
+                        round: this.round,
+                        start: true,
+                        gameOver: false,
+                    },
+                    set_game: (this.round > 0) ? null : {
+                        candidates: this.candidates ,
+                    }
+                }))
+            },
+            endGame() {
+                console.log('send end')
+                this.ws.send(JSON.stringify({
+                    round: {
+                        round: this.round,
+                        start: false,
+                        game_over: true,
+                    },
+                }))
+            },
+            addCandidate() {
+                this.candidates.push({
+                    order: this.candidates.length,
+                    name: '',
+                })
+            },
+            countdown() {
+                if (this.gameOver == true) {
+                    return
+                }
+
+                if (this.countdownID && this.countdownID != 0) {
+                    return
+                }
+
+                this.countdownID = setInterval(() => {
+                    console.log('countdown', this.roundEndTime - Date.now())
+                    this.leftTime = this.roundEndTime - Date.now()
+                    if (this.leftTime && this.leftTime <= 500) {
+                        this.leftTime = 0
+                        console.log('countdown clearInterval!!')
+                        if (this.countdownID && this.countdownID != 0) { 
+                            let id = this.countdownID
+                            this.countdownID = 0
+                            clearInterval(id)
+                        }
+                    }
+                }, 100)
+            },
+            handleWsReceiveData(data) {
+                if (data.connect) {
+                    this.handleConnectMsg(data.connect)
+                }
+
+                if (data.round) { 
+                    this.handleRoundMsg(data.round)
+                }
+
+                if (data.dashboard) {
+                    this.handleDashboardMsg(data.dashboard)
+                }
+            },
+            handleConnectMsg(msg) {
+                this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
+                this.round = (msg.round == null || msg.round == 0) ? this.round : msg.round
+                this.roundEndTime = (msg.end_time == null || msg.end_time == 0) ? this.roundEndTime : msg.end_time
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+                this.countdown()
+            },
+            handleRoundMsg(msg) {
+                this.round = (msg.round == null || msg.round == 0) ? this.round : msg.round
+                this.roundEndTime = (msg.end_time == null || msg.end_time == 0) ? this.roundEndTime : msg.end_time
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+                this.countdown()
+            },
+            handleDashboardMsg(msg) {
+                this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+            },
+        },
+        created() {
+            this.ws.onopen = () => {
+                console.log('ws open')
+                this.ws.send(JSON.stringify({
+                    connect: true,
+                }))
+            }
+
+            this.ws.onmessage = (msg) => {
+                let data = JSON.parse(msg.data)
+                console.log('ws message data', data)
+                this.handleWsReceiveData(data)
+            }
+
+            this.ws.onclose = () => {
+                console.log('ws close')
+            }
+        },
+    }).mount('#app')
+</script>
+
+<style>
+    :root {
+        --bg-base: 64px;
+        --col-1: #ffeabe;
+        --col-2: #fffcf0;
+        --bg-y: 20vh;
+
+        --gr-max: 70%;
+        --sc: 0.7;
+        --sc-1: calc(40% * var(--sc));
+        --sc-2: calc(var(--sc-1) * var(--sc));
+        --sc-3: calc(var(--sc-2) * var(--sc));
+        --sc-4: calc(var(--sc-3) * var(--sc));
+
+        --bg-size: calc(2 * var(--bg-base)) calc(2 * var(--bg-base));
+        --bg-mid: calc(var(--bg-y) - var(--bg-base) * .5);
+
+        --x: calc(var(--bg-base) * 1);
+        --y: calc(var(--bg-base) * 0.6);
+
+        --bg-pos-0: 0 calc(var(--bg-mid) - var(--y) * 5);
+        --bg-pos-1: var(--x) calc(var(--bg-mid) - var(--y) * 4);
+        --bg-pos-2: 0 calc(var(--bg-mid) - var(--y) * 3);
+        --bg-pos-3: var(--x) calc(var(--bg-mid) - var(--y) * 2);
+        --bg-pos-4: 0 calc(var(--bg-mid) - var(--bg-base) * .4);
+        --bg-pos-5: calc(var(--x)) calc(var(--bg-mid) - var(--bg-base) * .6 * 1.1);
+        --bg-pos-linear: 0 calc(var(--bg-mid) + var(--bg-base) * .5);
+    }
+
+    body {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        text-align: center;
+        text-decoration: none;
+
+        background-image:
+            radial-gradient(var(--col-1) var(--sc-4), transparent calc(var(--sc-4) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-3), transparent calc(var(--sc-3) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-2), transparent calc(var(--sc-2) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-1), transparent calc(var(--sc-1) + 1%)),
+            radial-gradient(var(--col-1) calc(var(--gr-max) / 2), transparent calc(var(--gr-max) / 2 + 1%)),
+            radial-gradient(var(--col-2) calc(var(--gr-max) / 2 + 2%), transparent calc((var(--gr-max) / 2 + 2%) + 1%)),
+            linear-gradient(var(--col-1), var(--col-1));
+
+        background-repeat: repeat-x;
+        background-size:
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            100vw 100vh;
+
+        background-color: var(--col-2);
+        background-position:
+            var(--bg-pos-0),
+            var(--bg-pos-1),
+            var(--bg-pos-2),
+            var(--bg-pos-3),
+            var(--bg-pos-4),
+            var(--bg-pos-5),
+            var(--bg-pos-linear);
+    }
+
+    .accentColor {
+        color: #f05b44;
+    }
+
+    img {
+        width: 100px;
+        width: 30vw;
+    }
+
+    h1,
+    .h1 {
+        display: block;
+        font-size: 48px;
+        font-size: 5vh;
+        margin: 5px 0;
+    }
+
+    h2,
+    .h2 {
+        display: block;
+        font-size: 48px;
+        font-size: 4vh;
+        margin: 5px 0;
+    }
+
+    h3,
+    .h3 {
+        display: block;
+        font-size: 48px;
+        font-size: 3vh;
+        margin: 5px 0;
+    }
+
+    h4,
+    .h4 {
+        display: block;
+        font-size: 48px;
+        font-size: 2vh;
+        margin: 5px 0;
+    }
+
+    h5,
+    .h5 {
+        display: block;
+        font-size: 48px;
+        font-size: 1vh;
+        margin: 5px 0;
+    }
+
+
+    ul {
+        list-style: none;
+        margin: 0;
+    }
+
+    li {
+        list-style: none;
+        text-align: center;
+        margin: 0;
+    }
+
+    .text-li {
+        text-align: left;
+        width: 80%;
+    }
+
+    button {
+        border: none;
+        background-color: #f05b44;
+        color: white;
+        display: block;
+        cursor: pointer;
+    }
+
+    input {
+        border: none;
+        text-align: center;
+        display: inline-block;
+        width: 80%;
+        padding: 5px;
+    }
+
+    .hardPadding {
+        padding: 8px 32px;
+    }
+
+    .softPadding {
+        padding: 8px auto;
+    }
+
+    .margin {
+        margin: 5px auto;
+    }
+
+    .gap {
+        margin: 15px auto;
+    }
+
+    .app {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        transform: translate(-50%, -50%);
+    }
+
+    .round {
+        border-radius: 15px;
+    }
+
+    .shadow {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .inBlock {
+        display: inline-block;
+    }
+</style>
+
+<body>
+    <div id="app" class="app">
+        <h1 class="accentColor"> %ROOM_TITLE% </h1>
+
+        <!-- round start -->
+        <div v-if="round != 0 || gameOver">
+            <h3>排行榜：</h3>
+            <ul>
+                <li v-for="d in dashboard" :key="d.score" class="text-li">
+                    <h3 class="margin">{{ d.score }} 分&emsp;{{ d.name }}</h3>
+                </li>
+            </ul>
+        </div>
+        <!-- round 0 -->
+        <div v-else>
+            <h3> 掃描 QRCode 加入投票房間吧！ </h3>
+            <button @click="copy" class="margin softPadding" style="background: transparent">
+                <img src="data:image/png;base64, %QRCODE%" alt="" />
+            </button>
+            <!-- <h4>%ROOM_LINK%</h4> -->
+    
+            <h4>
+                候選人：
+                <button @click="addCandidate" class="inBlock shadow softPadding" > + </button>
+            </h4>
+            <ul>
+                <li v-for="candidate in candidates" :key="candidate.order">
+                    <input class="round margin" v-model="candidate.name" required placeholder="候選人姓名">
+                </li>
+            </ul>
+        </div>
+
+        <br class=".h3"/>
+
+        <div v-if="isVoting">
+            <h3>第 {{ round }} 輪投票中</h3>
+            <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
+        </div>
+        <div v-else-if="gameOver">
+            <h3>投票已結束</h3>
+        </div> 
+        <div v-else>
+            <button @click="startVote" class="shadow margin hardPadding round h3">開始第 {{ round + 1 }} 輪投票</button>
+            <br class=".h5" />
+            <button @click="endGame" class="shadow margin hardPadding round h3">結束投票，結算分數</button>
+        </div>
+        
+        <!-- <p> {{ leftTime }} </p> -->
+        <!-- <p> {{ gameOver }} </p> -->
+    </div>
+</body>
+</html>

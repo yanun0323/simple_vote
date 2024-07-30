@@ -1,0 +1,35 @@
+<!-- create a html file using embed vue -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import { createApp, ref } from 'https://unpkg.com/vue@3.2.37/dist/vue.esm-browser.js'
+
+    createApp({
+        methods: {},
+        setup() {
+            return {}
+        }
+    }).mount('#app')
+</script>
+
+<body>
+    <div id="app">
+        <h1> 投一下 </h1>
+        <p>user: {{ uid }}</p>
+        <p>room: {{ room_master }}</p>
+
+
+        <p>你的名字</p>
+        <input v-model="room_master" required placeholder="王小明">
+        <p><button @click="createRoom">建立房間</button></p>
+
+        <p><button @click="getUID">Get UID</button></p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!-- create a html file using embed vue -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC&family=Noto+Sans+TC&display=swap"
+        rel="stylesheet">
+</head>
+<style>
+    :root {
+
+        --bg-base: 64px;
+        --col-1: #ffeabe;
+        --col-2: #fffcf0;
+        --bg-y: 20vh;
+
+        --gr-max: 70%;
+        --sc: 0.7;
+        --sc-1: calc(40% * var(--sc));
+        --sc-2: calc(var(--sc-1) * var(--sc));
+        --sc-3: calc(var(--sc-2) * var(--sc));
+        --sc-4: calc(var(--sc-3) * var(--sc));
+
+        --bg-size: calc(2 * var(--bg-base)) calc(2 * var(--bg-base));
+        --bg-mid: calc(var(--bg-y) - var(--bg-base) * .5);
+
+        --x: calc(var(--bg-base) * 1);
+        --y: calc(var(--bg-base) * 0.6);
+
+        --bg-pos-0: 0 calc(var(--bg-mid) - var(--y) * 5);
+        --bg-pos-1: var(--x) calc(var(--bg-mid) - var(--y) * 4);
+        --bg-pos-2: 0 calc(var(--bg-mid) - var(--y) * 3);
+        --bg-pos-3: var(--x) calc(var(--bg-mid) - var(--y) * 2);
+        --bg-pos-4: 0 calc(var(--bg-mid) - var(--bg-base) * .4);
+        --bg-pos-5: calc(var(--x)) calc(var(--bg-mid) - var(--bg-base) * .6 * 1.1);
+        --bg-pos-linear: 0 calc(var(--bg-mid) + var(--bg-base) * .5);
+    }
+
+    body {
+        background-image:
+            radial-gradient(var(--col-1) var(--sc-4), transparent calc(var(--sc-4) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-3), transparent calc(var(--sc-3) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-2), transparent calc(var(--sc-2) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-1), transparent calc(var(--sc-1) + 1%)),
+            radial-gradient(var(--col-1) calc(var(--gr-max) / 2), transparent calc(var(--gr-max) / 2 + 1%)),
+            radial-gradient(var(--col-2) calc(var(--gr-max) / 2 + 2%), transparent calc((var(--gr-max) / 2 + 2%) + 1%)),
+            linear-gradient(var(--col-1), var(--col-1));
+
+        background-repeat: repeat-x;
+        background-size:
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            100vw 100vh;
+
+        background-color: var(--col-2);
+        background-position:
+            var(--bg-pos-0),
+            var(--bg-pos-1),
+            var(--bg-pos-2),
+            var(--bg-pos-3),
+            var(--bg-pos-4),
+            var(--bg-pos-5),
+            var(--bg-pos-linear);
+    }
+
+
+    .title {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        color: #f05b44;
+        font-size: 4em;
+        font-weight: 1000;
+    }
+
+    .horizontal-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+
+
+    .simple-button {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        background-color: #f05b44;
+        border: none;
+        color: white;
+        padding: 8px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 2em;
+        margin: 15px auto;
+        cursor: pointer;
+        border-radius: 15px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .simple-input {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        border: none;
+        padding: 8px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 3em;
+        margin: 15px auto;
+        border-radius: 15px;
+    }
+</style>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import { createApp, ref } from 'https://unpkg.com/vue@3.2.37/dist/vue.esm-browser.js'
+
+    createApp({
+        data() {
+            return {
+                uid: localStorage.getItem('uid'),
+                message: '',
+                room_master: '',
+                room_started: '%ROOM_STARTED%',
+            }
+        },
+        methods: {
+            createPlayer() {
+                let url = '%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') 
+                let req = {
+                    uid: localStorage.getItem('uid'),
+                    name: localStorage.getItem('uid')
+                }
+
+                axios.post(url, req).then(res => {
+                    console.log(res)
+                    if (res.status != 200) {
+                        alert("進入房間失敗，請重試")
+                        return
+                    }
+
+                    window.location.href = '%HOST%/vote/%ROOM_ID%/'+ localStorage.getItem('uid') 
+                })
+            }
+        },
+        created() {
+            let uid = localStorage.getItem('uid');
+            
+            if (uid == null) {
+                localStorage.setItem('uid', '%UID%');
+                uid = '%UID%';
+            }
+
+            this.createPlayer()
+        }
+    }).mount('#app')
+</script>
+
+<body>
+    <div id="app" class="horizontal-center">
+        <h1>%ROOM_TITLE%</h1>
+        <div v-if="room_started">
+            <h3>投票已開始，無法再進入投票房間</h3>
+        </div>
+        <div v-else>
+            <h3>你的名稱</h3>
+            <input v-model="player_name" required placeholder="王小明">
+            <p><button @click="createPlayer">進入投票房間</button></p>
+        </div>
+    </div>
+</body>
+</html>

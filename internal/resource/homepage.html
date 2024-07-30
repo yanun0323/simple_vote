@@ -1,0 +1,223 @@
+<!-- create a html file using embed vue -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote Together</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC&family=Noto+Sans+TC&display=swap" rel="stylesheet">
+</head>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import { createApp, ref } from 'https://unpkg.com/vue@3.2.37/dist/vue.esm-browser.js'
+
+    createApp({
+        data() {
+            return {
+                uid: '',
+                message: '',
+                room_title: '我們的歌',
+            }
+        },
+        methods: {
+            getUID() {
+                this.uid = localStorage.getItem('uid');
+            },
+            createRoom() {
+                let url = '%HOST%/api/vote/' + this.room_title
+                console.log('post to:', url)
+
+                let req = {
+                    uid: this.uid,
+                    room_title: this.room_title,
+                }
+
+                axios.post(url, req).then(response => {
+                    console.log(response)
+                    if (response.status != 200) {
+                        alert("建立房間失敗，請重試")
+                        return
+                    }
+
+                    window.location.href = "%HOST%/vote/" + response.data.room_id + "/" + this.uid
+                })
+            }
+        },
+        created() {
+            localStorage.setItem('uid', '%UID%');
+            this.uid = localStorage.getItem('uid');
+        }
+    }).mount('#app')
+</script>
+
+<style>
+    :root {
+        --bg-base: 64px;
+        --col-1: #ffeabe;
+        --col-2: #fffcf0;
+        --bg-y: 20vh;
+
+        --gr-max: 70%;
+        --sc: 0.7;
+        --sc-1: calc(40% * var(--sc));
+        --sc-2: calc(var(--sc-1) * var(--sc));
+        --sc-3: calc(var(--sc-2) * var(--sc));
+        --sc-4: calc(var(--sc-3) * var(--sc));
+
+        --bg-size: calc(2 * var(--bg-base)) calc(2 * var(--bg-base));
+        --bg-mid: calc(var(--bg-y) - var(--bg-base) * .5);
+
+        --x: calc(var(--bg-base) * 1);
+        --y: calc(var(--bg-base) * 0.6);
+
+        --bg-pos-0: 0 calc(var(--bg-mid) - var(--y) * 5);
+        --bg-pos-1: var(--x) calc(var(--bg-mid) - var(--y) * 4);
+        --bg-pos-2: 0 calc(var(--bg-mid) - var(--y) * 3);
+        --bg-pos-3: var(--x) calc(var(--bg-mid) - var(--y) * 2);
+        --bg-pos-4: 0 calc(var(--bg-mid) - var(--bg-base) * .4);
+        --bg-pos-5: calc(var(--x)) calc(var(--bg-mid) - var(--bg-base) * .6 * 1.1);
+        --bg-pos-linear: 0 calc(var(--bg-mid) + var(--bg-base) * .5);
+    }
+
+    body {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        text-align: center;
+        text-decoration: none;
+
+        background-image:
+            radial-gradient(var(--col-1) var(--sc-4), transparent calc(var(--sc-4) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-3), transparent calc(var(--sc-3) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-2), transparent calc(var(--sc-2) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-1), transparent calc(var(--sc-1) + 1%)),
+            radial-gradient(var(--col-1) calc(var(--gr-max) / 2), transparent calc(var(--gr-max) / 2 + 1%)),
+            radial-gradient(var(--col-2) calc(var(--gr-max) / 2 + 2%), transparent calc((var(--gr-max) / 2 + 2%) + 1%)),
+            linear-gradient(var(--col-1), var(--col-1));
+
+        background-repeat: repeat-x;
+        background-size:
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            100vw 100vh;
+
+        background-color: var(--col-2);
+        background-position:
+            var(--bg-pos-0),
+            var(--bg-pos-1),
+            var(--bg-pos-2),
+            var(--bg-pos-3),
+            var(--bg-pos-4),
+            var(--bg-pos-5),
+            var(--bg-pos-linear);
+    }
+
+    .accentColor {
+        color: #f05b44;
+    }
+
+    h1, .h1 {
+        display: block;
+        font-size: 48px;
+        font-size: 5vh;
+        margin: 5px 0;
+    }
+
+    h2, .h2 {
+        display: block;
+        font-size: 48px;
+        font-size: 4vh;
+        margin: 5px 0;
+    }
+
+    h3, .h3 {
+        display: block;
+        font-size: 48px;
+        font-size: 3vh;
+        margin: 5px 0;
+    }
+
+    h4, .h4 {
+        display: block;
+        font-size: 48px;
+        font-size: 2vh;
+        margin: 5px 0;
+    }
+
+    h5, .h5 {
+        display: block;
+        font-size: 48px;
+        font-size: 1vh;
+        margin: 5px 0;
+    }
+
+    button {
+        border: none;
+        background-color: #f05b44;
+        color: white;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    input {
+        border: none;
+        text-align: center;
+        display: inline-block;
+        width: 80%;
+        padding: 5px;
+    }
+
+    .hardPadding {
+        padding: 8px 32px;
+    }
+    
+    .softPadding {
+        padding: 8px auto;
+    }
+
+    .margin {
+        margin: 5px auto;
+    }
+
+    .gap {
+        margin: 15px auto;
+    }
+
+    .app {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        transform: translate(-50%, -50%);
+    }
+
+    .round {
+        border-radius: 15px;
+    }
+
+    .shadow {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
+    }
+</style>
+
+<body>
+    <div id="app" class="app">
+        <h1 class="accentColor"> 今天想投什麼？ </h1>
+        <input class="h2 softPadding gap round" v-model="room_title" required placeholder="誰最可愛？">
+        <button class="h3 hardPadding round shadow margin" @click="createRoom">建立投票房間</button>
+
+        <!-- <p>user: {{ uid }}</p>
+        <p>room: {{ room_title }}</p>
+        <p><button @click="getUID">Get UID</button></p> -->
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,370 @@
+<!-- create a html file using embed vue -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%ROOM_TITLE%</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC&family=Noto+Sans+TC&display=swap"
+        rel="stylesheet">
+</head>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import { createApp, ref } from 'https://unpkg.com/vue@3.2.37/dist/vue.esm-browser.js'
+
+    createApp({
+        data() {
+            return {
+                ws: new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player'),
+                uid: localStorage.getItem('uid'),
+                playerName: '',
+                message: '',
+                round: 0,
+                roundVoted: '',
+                roundEndTime: Date.now(),
+                gameOver: false,
+                leftTime: 0,
+                countdownID: 0,
+                dashboard: [],
+                candidates: [],
+            }
+        },
+        computed: {
+            canVote() {
+                return this.leftTime > 500 && this.roundVoted == ''
+            },
+        },
+        methods: {
+            vote(id) {
+                this.roundVoted = id
+                this.ws.send(JSON.stringify({
+                    vote: {
+                        round: this.round,
+                        candidate: id,
+                    }
+                }))
+            },
+            countdown() {
+                if (this.gameOver == true) {
+                    return
+                }
+
+                if (this.countdownID && this.countdownID != 0) {
+                    return
+                }
+
+                this.countdownID = setInterval(() => {
+                    console.log('countdown', this.roundEndTime - Date.now())
+                    this.leftTime = this.roundEndTime - Date.now()
+                    if (this.leftTime && this.leftTime <= 500) {
+                        this.leftTime = 0
+                        console.log('countdown clearInterval!!')
+                        if (this.countdownID && this.countdownID != 0) {
+                            let id = this.countdownID
+                            this.countdownID = 0
+                            clearInterval(id)
+                        }
+                    }
+                }, 100)
+            },
+            handleWsReceiveData(data) {
+                if (data.connect) {
+                    this.handleConnectMsg(data.connect)
+                }
+
+                if (data.round) {
+                    this.handleRoundMsg(data.round)
+                }
+
+                if (data.dashboard) {
+                    this.handleDashboardMsg(data.dashboard)
+                }
+            },
+            handleConnectMsg(msg) {
+                this.playerName = (msg.player_name == null || msg.player_name == '') ? this.playerName : msg.player_name
+                this.candidates = (msg.candidates == null || msg.candidates == []) ? this.candidates : msg.candidates
+                this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
+                this.round = (msg.round == null || msg.round == 0) ? this.round : msg.round
+                this.roundEndTime = (msg.end_time == null || msg.end_time == 0) ? this.roundEndTime : msg.end_time
+                this.roundVoted = (msg.round_voted == null || msg.round_voted == '') ? this.roundVoted : msg.round_voted
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+                this.countdown()
+            },
+            handleRoundMsg(msg) {
+                if (msg.round != null && msg.round != 0 && msg.round != this.round ) {
+                    this.roundVoted = ''
+                }
+
+                this.round = (msg.round == null || msg.round == 0) ? this.round : msg.round
+                this.roundEndTime = (msg.end_time == null || msg.end_time == 0) ? this.roundEndTime : msg.end_time
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+                this.countdown()
+            },
+            handleDashboardMsg(msg) {
+                this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
+                this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
+            },
+        },
+        created() {
+            this.ws.onopen = () => {
+                console.log('ws open')
+                this.ws.send(JSON.stringify({
+                    connect: true,
+                }))
+            }
+            this.ws.onmessage = (msg) => {
+                let data = JSON.parse(msg.data)
+                console.log('ws message data', data)
+                this.handleWsReceiveData(data)
+            }
+
+            this.ws.onclose = () => {
+                console.log('ws close')
+            }   
+        },
+    }).mount('#app')
+</script>
+
+<style>
+    :root {
+        --bg-base: 64px;
+        --col-1: #ffeabe;
+        --col-2: #fffcf0;
+        --bg-y: 20vh;
+
+        --gr-max: 70%;
+        --sc: 0.7;
+        --sc-1: calc(40% * var(--sc));
+        --sc-2: calc(var(--sc-1) * var(--sc));
+        --sc-3: calc(var(--sc-2) * var(--sc));
+        --sc-4: calc(var(--sc-3) * var(--sc));
+
+        --bg-size: calc(2 * var(--bg-base)) calc(2 * var(--bg-base));
+        --bg-mid: calc(var(--bg-y) - var(--bg-base) * .5);
+
+        --x: calc(var(--bg-base) * 1);
+        --y: calc(var(--bg-base) * 0.6);
+
+        --bg-pos-0: 0 calc(var(--bg-mid) - var(--y) * 5);
+        --bg-pos-1: var(--x) calc(var(--bg-mid) - var(--y) * 4);
+        --bg-pos-2: 0 calc(var(--bg-mid) - var(--y) * 3);
+        --bg-pos-3: var(--x) calc(var(--bg-mid) - var(--y) * 2);
+        --bg-pos-4: 0 calc(var(--bg-mid) - var(--bg-base) * .4);
+        --bg-pos-5: calc(var(--x)) calc(var(--bg-mid) - var(--bg-base) * .6 * 1.1);
+        --bg-pos-linear: 0 calc(var(--bg-mid) + var(--bg-base) * .5);
+    }
+
+    body {
+        font-family: "Noto Sans TC", monospace, sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        text-align: center;
+        text-decoration: none;
+
+        background-image:
+            radial-gradient(var(--col-1) var(--sc-4), transparent calc(var(--sc-4) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-3), transparent calc(var(--sc-3) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-2), transparent calc(var(--sc-2) + 1%)),
+            radial-gradient(var(--col-1) var(--sc-1), transparent calc(var(--sc-1) + 1%)),
+            radial-gradient(var(--col-1) calc(var(--gr-max) / 2), transparent calc(var(--gr-max) / 2 + 1%)),
+            radial-gradient(var(--col-2) calc(var(--gr-max) / 2 + 2%), transparent calc((var(--gr-max) / 2 + 2%) + 1%)),
+            linear-gradient(var(--col-1), var(--col-1));
+
+        background-repeat: repeat-x;
+        background-size:
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            var(--bg-size),
+            100vw 100vh;
+
+        background-color: var(--col-2);
+        background-position:
+            var(--bg-pos-0),
+            var(--bg-pos-1),
+            var(--bg-pos-2),
+            var(--bg-pos-3),
+            var(--bg-pos-4),
+            var(--bg-pos-5),
+            var(--bg-pos-linear);
+    }
+
+    .accentColor {
+        color: #f05b44;
+    }
+
+    h1,
+    .h1 {
+        display: block;
+        font-size: 48px;
+        font-size: 5vh;
+        margin: 5px 0;
+    }
+
+    h2,
+    .h2 {
+        display: block;
+        font-size: 48px;
+        font-size: 4vh;
+        margin: 5px 0;
+    }
+
+    h3,
+    .h3 {
+        display: block;
+        font-size: 48px;
+        font-size: 3vh;
+        margin: 5px 0;
+    }
+
+    h4,
+    .h4 {
+        display: block;
+        font-size: 48px;
+        font-size: 2vh;
+        margin: 5px 0;
+    }
+
+    h5,
+    .h5 {
+        display: block;
+        font-size: 48px;
+        font-size: 1vh;
+        margin: 5px 0;
+    }
+
+
+    ul {
+        list-style: none;
+        margin: 0;
+    }
+
+    li {
+        list-style: none;
+        text-align: center;
+        margin: 0;
+    }
+
+    .text-li {
+        text-align: left;
+        width: 80%;
+    }
+
+    button {
+        border: none;
+        background-color: #f05b44;
+        color: white;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    input {
+        border: none;
+        text-align: center;
+        display: inline-block;
+        width: 80%;
+        padding: 5px;
+    }
+
+    .hardPadding {
+        padding: 8px 32px;
+    }
+
+    .softPadding {
+        padding: 8px auto;
+    }
+
+    .margin {
+        margin: 5px auto;
+    }
+
+    .gap {
+        margin: 15px auto;
+    }
+
+    .app {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        transform: translate(-50%, -50%);
+    }
+
+    .round {
+        border-radius: 15px;
+    }
+
+    .shadow {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .block-button-li {
+        display: inline-block;
+        margin: 5px;
+    }
+
+    .block-button {
+        background: linear-gradient(to bottom right, #f05b44, #f06b54);
+        width: 48px;
+        width: 15vh;
+        height: 48px;
+        height: 15vh;
+        border: none;
+        color: white;
+        padding: 3px 3px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 48px;
+        font-size: 3vh;
+        cursor: pointer;
+    }
+    
+</style>
+
+<body>
+    <div id="app" class="app">
+        <h1 class="accentColor"> %ROOM_TITLE% </h1>
+        <h3> {{ playerName }} </h3>
+        <div v-if="gameOver">
+            <h2 class="accentColor">投票已結束 </h2>
+        </div>
+        <div v-else-if="round == 0 || leftTime == 0">
+            <h2 class="accentColor">等待下一輪投票...</h2>
+        </div>
+        <div v-else>
+            <h3>第 {{ round }} 輪投票中...</h3>
+            <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
+        </div>
+
+        <div v-if="gameOver || leftTime == 0">
+            <div v-if="round != 0">
+                <br/>
+                <h2 v-if="gamOver">投票結果：</h2>
+                <h2 v-else>第 {{ round }} 輪結果：</h2>
+                <ul>
+                    <li v-for="d in dashboard" :key="d.score" class="text-li">
+                        <h3 class="margin">&emsp;{{ d.score }} 分&emsp;{{ d.name }}</h3>
+                    </li>
+                </ul>
+            </div>
+            <div v-else></div> 
+        </div>
+        <div v-else>
+            <ul>
+                <li v-for="candidate in candidates" :key="candidate.order" class="block-button-li">
+                    <button class="block-button round shadow" @click="vote(candidate.id)" :disabled="!canVote"
+                        :style="{ opacity: (canVote || candidate.id == roundVoted) ? 1 : 0.3 }">
+                        <span>{{ candidate.name }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
