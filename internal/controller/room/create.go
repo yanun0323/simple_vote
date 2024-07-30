@@ -5,6 +5,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+
+	"main/internal/utils"
 )
 
 type CreateRoomRequest struct {
@@ -50,6 +52,7 @@ func CreateRoom() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		utils.SetCORS(w)
 		w.Write(response)
 	}
 }
