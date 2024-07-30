@@ -1,6 +1,10 @@
 package utils
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/spf13/viper"
+)
 
 func CORS(fn func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -11,5 +15,5 @@ func CORS(fn func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseW
 
 func setCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+	w.Header().Set("Access-Control-Allow-Origin", viper.GetString("host"))
 }
