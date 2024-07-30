@@ -88,6 +88,8 @@ func ConnectPlayer() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		l := logs.New(logs.LevelDebug).WithField("player", r.RequestURI)
 		l.Info("wss request received")
+		utils.SetWss(r)
+
 		roomID, uid := r.PathValue("room_id"), r.PathValue("uid")
 		if roomID == "" || uid == "" {
 			l.Warn("roomID or uid is empty")

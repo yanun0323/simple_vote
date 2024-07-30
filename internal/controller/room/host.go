@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"main/internal/utils"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/yanun0323/pkg/logs"
@@ -75,11 +77,7 @@ func ConnectHost() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		l := logs.New(logs.LevelDebug).WithField("host", r.RequestURI)
 		l.Info("wss request received")
-
-		r.Header.Set("Upgrade", "websocket")
-		r.Header.Set("Connection", "Upgrade")
-
-		l.Warnf("r.Header: %+v", r.Header)
+		utils.SetWss(r)
 
 		roomID, uid := r.PathValue("room_id"), r.PathValue("uid")
 		if roomID == "" || uid == "" {
