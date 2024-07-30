@@ -361,14 +361,14 @@
         <!-- round 0 -->
         <div v-else>
             <h3> 掃描 QRCode 加入投票房間吧！ </h3>
-            <button @click="copy" class="margin softPadding" style="background: transparent">
+            <button @click.prevent="copy" @touchstart.prevent="copy" class="margin softPadding" style="background: transparent">
                 <img src="data:image/png;base64, %QRCODE%" alt="" />
             </button>
             <!-- <h4>%ROOM_LINK%</h4> -->
     
             <h4>
                 候選人：
-                <button @click="addCandidate" class="inBlock shadow softPadding" > + </button>
+                <button @click.prevent="addCandidate" @touchstart.prevent="addCandidate" class="inBlock shadow softPadding" > + </button>
             </h4>
             <ul>
                 <li v-for="candidate in candidates" :key="candidate.order">
@@ -387,9 +387,9 @@
             <h3>投票已結束</h3>
         </div> 
         <div v-else>
-            <button @click="startVote" class="shadow margin hardPadding round h3">開始第 {{ round + 1 }} 輪投票</button>
+            <button @click.prevent="startVote" @touchstart.prevent="startVote" class="shadow margin hardPadding round h3">開始第 {{ round + 1 }} 輪投票</button>
             <br class=".h5" />
-            <button @click="endGame" class="shadow margin hardPadding round h3">結束投票，結算分數</button>
+            <button @click.prevent="endGame" @touchstart.prevent="endGame" class="shadow margin hardPadding round h3">結束投票，結算分數</button>
         </div>
         
         <!-- <p> {{ leftTime }} </p> -->
