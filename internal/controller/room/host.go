@@ -78,6 +78,9 @@ func ConnectHost() func(w http.ResponseWriter, r *http.Request) {
 
 		l.Warnf("r.Header: %+v", r.Header)
 
+		r.Header.Set("Upgrade", "websocket")
+		r.Header.Set("Connection", "Upgrade")
+
 		roomID, uid := r.PathValue("room_id"), r.PathValue("uid")
 		if roomID == "" || uid == "" {
 			l.Warn("roomID or uid is empty")
