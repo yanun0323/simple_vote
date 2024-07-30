@@ -27,9 +27,9 @@
 
         <p>你的名字</p>
         <input v-model="room_master" required placeholder="王小明">
-        <p><button @mouseup="createRoom" @touchend="createRoom">建立房間</button></p>
+        <p><button @mouseup="createRoom" @touchstart="createRoom">建立房間</button></p>
 
-        <p><button @mouseup="getUID" @touchend="getUID">Get UID</button></p>
+        <p><button @mouseup="getUID" @touchstart="getUID">Get UID</button></p>
     </div>
 </body>
 </html>

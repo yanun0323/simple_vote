@@ -366,7 +366,7 @@
         <div v-else>
             <ul>
                 <li v-for="candidate in candidates" :key="candidate.order" class="block-button-li">
-                    <button class="block-button round shadow" @mouseup="vote(candidate.id)" @touchend="vote(candidate.id)" :disabled="!canVote"
+                    <button class="block-button round shadow" @mouseup="vote(candidate.id)" @touchstart="vote(candidate.id)" :disabled="!canVote"
                         :style="{ opacity: (canVote || candidate.id == roundVoted) ? 1 : 0.3 }">
                         <span>{{ candidate.name }}</span>
                     </button>
