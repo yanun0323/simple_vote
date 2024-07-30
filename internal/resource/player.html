@@ -238,13 +238,21 @@
         margin: 5px 0;
     }
 
-
     ul {
         list-style: none;
         margin: 0;
     }
 
-    li {
+    ol {
+        margin: 0;
+    }
+
+    ol.li {
+        text-align: center;
+        margin: 0;
+    }
+
+    ul.li {
         list-style: none;
         text-align: center;
         margin: 0;
@@ -358,7 +366,7 @@
         <div v-else>
             <ul>
                 <li v-for="candidate in candidates" :key="candidate.order" class="block-button-li">
-                    <button class="block-button round shadow" @click.prevent="vote(candidate.id)" @touchstart.prevent="vote(candidate.id)" :disabled="!canVote"
+                    <button class="block-button round shadow" @mouseup="vote(candidate.id)" @touchend="vote(candidate.id)" :disabled="!canVote"
                         :style="{ opacity: (canVote || candidate.id == roundVoted) ? 1 : 0.3 }">
                         <span>{{ candidate.name }}</span>
                     </button>
