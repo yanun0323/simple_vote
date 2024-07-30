@@ -10,7 +10,7 @@ RUN go mod download
 # install gcc
 RUN apk add build-base
 
-RUN go build -o bitopi main.go
+RUN go build -o vote main.go
 
 # final stage
 FROM alpine:3.18
@@ -20,8 +20,7 @@ RUN apk add --no-cache tzdata
 ENV TZ Asia/Taipei
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-COPY --from=build /go/build/bitopi /var/application/bitopi
-COPY --from=build /go/build/config /var/application/config
+COPY --from=build /go/build/vote /var/application/vote
 
 EXPOSE 8080
 
