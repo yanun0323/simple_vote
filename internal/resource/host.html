@@ -24,6 +24,7 @@
                 roundEndTime: Date.now(),
                 gameOver: false,
                 leftTime: 0,
+                setCountdownSeconds: 15,
                 countdownID: 0,
                 dashboard: [],
                 onlinePlayers: [],
@@ -43,6 +44,24 @@
         computed: {
             isVoting() {
                 return this.leftTime > 500
+            },
+            countdownDisplay() {
+                switch (this.setCountdownSeconds) {
+                    case 3:
+                        return '3秒'
+                    case 5:
+                        return '5秒'
+                    case 15:
+                        return '15秒'
+                    case 30:
+                        return '30秒'
+                    case 3600:
+                        return '1小時'
+                    case 86400:
+                        return '1天'
+                    default:
+                        return this.setCountdownSeconds + '秒'
+                }
             }
         },
         methods: {
@@ -67,6 +86,7 @@
                     },
                     set_game: (this.round > 0) ? null : {
                         candidates: this.candidates ,
+                        countdown: Number(this.setCountdownSeconds),
                     }
                 }))
             },
@@ -392,6 +412,7 @@
 
         <!-- round start -->
         <div v-if="round != 0 || gameOver">
+            <h3>投票倒數秒數設定 {{ countdownDisplay }} </h3>
             <h3>排行榜：</h3>
             <ul>
                 <li v-for="d in dashboard" :key="d.score" class="text-li">
@@ -406,7 +427,40 @@
                 <img src="data:image/png;base64, %QRCODE%" alt="" />
             </button>
             <!-- <h4>%ROOM_LINK%</h4> -->
-    
+            
+            <h4>
+                設定投票倒數：
+                <div class="inBlock">
+                    <input type="radio" id="3" value=3 v-model="setCountdownSeconds" />
+                    <label for="3">3秒</label>
+                </div>
+
+                <div class="inBlock">
+                    <input type="radio" id="5" value=5 v-model="setCountdownSeconds" />
+                    <label for="5">5秒</label>
+                </div>
+
+                <div class="inBlock">
+                    <input type="radio" id="15" value=15 v-model="setCountdownSeconds" />
+                    <label for="15">15秒</label>
+                </div>
+
+                <div class="inBlock">
+                    <input type="radio" id="30" value=30 v-model="setCountdownSeconds" />
+                    <label for="30">30秒</label>
+                </div>
+
+                <div class="inBlock">
+                    <input type="radio" id="3600" value=3600 v-model="setCountdownSeconds" />
+                    <label for="3600">1小時</label>
+                </div>
+
+                <div class="inBlock">
+                    <input type="radio" id="86400" value=86400 v-model="setCountdownSeconds" />
+                    <label for="86400">1天</label>
+                </div>
+            </h4>
+
             <h4>
                 候選人：
                 <button @mouseup="addCandidate" @touchstart="addCandidate" class="inBlock shadow softPadding" > + </button>

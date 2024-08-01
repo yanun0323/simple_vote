@@ -10,39 +10,45 @@ import (
 )
 
 var (
-	_roomPool           = utils.NewSyncMap[string, *Room]()
-	_defaultChannelSize = 500
+	_roomPool                  = utils.NewSyncMap[string, *Room]()
+	_defaultChannelSize        = 500
+	_defaultPlayerDisplayLimit = 3
+	_defaultCountdownDuration  = 15 * time.Second
 )
 
 type Room struct {
-	l            logs.Logger
-	RoomID       string
-	Title        string
-	PlayerUpdate chan struct{}
-	HostMsg      chan HostWsMessageOutgoing
-	Round        *utils.SyncValue[int]
-	RoundEndTime *utils.SyncValue[int64]
-	IsGameStart  *utils.SyncValue[bool]
-	IsGameOver   *utils.SyncValue[bool]
-	playerTable  *utils.SyncMap[string, *Player]
-	dashboard    *utils.SyncMap[string, *Candidate]
-	nickname     *utils.NicknamePool
+	l                           logs.Logger
+	RoomID                      string
+	Title                       string
+	PlayerUpdate                chan struct{}
+	HostMsg                     chan HostWsMessageOutgoing
+	Round                       *utils.SyncValue[int]
+	RoundEndTime                *utils.SyncValue[int64]
+	IsGameStart                 *utils.SyncValue[bool]
+	IsGameOver                  *utils.SyncValue[bool]
+	playerTable                 *utils.SyncMap[string, *Player]
+	dashboard                   *utils.SyncMap[string, *Candidate]
+	nickname                    *utils.NicknamePool
+	countdown                   *utils.SyncValue[time.Duration]
+	dashboardPlayerDisplayLimit *utils.SyncValue[int]
 }
 
 func NewRoom(roomID string, title string) *Room {
 	return &Room{
-		l:            logs.New(logs.LevelDebug).WithField("room", roomID),
-		RoomID:       roomID,
-		Title:        title,
-		PlayerUpdate: make(chan struct{}, _defaultChannelSize),
-		HostMsg:      make(chan HostWsMessageOutgoing, _defaultChannelSize),
-		Round:        utils.NewSyncValue(0),
-		RoundEndTime: utils.NewSyncValue[int64](0),
-		IsGameStart:  utils.NewSyncValue(false),
-		IsGameOver:   utils.NewSyncValue(false),
-		playerTable:  utils.NewSyncMap[string, *Player](),
-		dashboard:    utils.NewSyncMap[string, *Candidate](),
-		nickname:     utils.NewNicknamePool(),
+		l:                           logs.New(logs.LevelDebug).WithField("room", roomID),
+		RoomID:                      roomID,
+		Title:                       title,
+		PlayerUpdate:                make(chan struct{}, _defaultChannelSize),
+		HostMsg:                     make(chan HostWsMessageOutgoing, _defaultChannelSize),
+		Round:                       utils.NewSyncValue(0),
+		RoundEndTime:                utils.NewSyncValue[int64](0),
+		IsGameStart:                 utils.NewSyncValue(false),
+		IsGameOver:                  utils.NewSyncValue(false),
+		playerTable:                 utils.NewSyncMap[string, *Player](),
+		dashboard:                   utils.NewSyncMap[string, *Candidate](),
+		nickname:                    utils.NewNicknamePool(),
+		countdown:                   utils.NewSyncValue(_defaultCountdownDuration),
+		dashboardPlayerDisplayLimit: utils.NewSyncValue(_defaultPlayerDisplayLimit),
 	}
 }
 
@@ -51,7 +57,7 @@ func (r *Room) BroadcastDashboardUpdate(skipHost ...bool) {
 	for _, player := range sli {
 		player.Channel <- PlayerWsMessageOutgoing{
 			Dashboard: &PlayerWsMessageDashboardResponse{
-				Dashboard: r.GetDashboard(),
+				Dashboard: r.GetDashboard(r.dashboardPlayerDisplayLimit.Load()),
 				GameOver:  r.IsGameOver.Load(),
 			},
 			Timestamp: time.Now().UnixMilli(),
@@ -103,7 +109,7 @@ func (r *Room) GetPlayerNames() []string {
 	return names
 }
 
-func (r *Room) GetDashboard() []*Candidate {
+func (r *Room) GetDashboard(limit ...int) []*Candidate {
 	d := r.dashboard.ValueSlice()
 
 	sort.Slice(d, func(i, j int) bool {
@@ -113,6 +119,10 @@ func (r *Room) GetDashboard() []*Candidate {
 
 		return d[i].Order < d[j].Order
 	})
+
+	if len(limit) != 0 && limit[0] > 0 && limit[0] < len(d) {
+		return d[:limit[0]-1]
+	}
 
 	return d
 }

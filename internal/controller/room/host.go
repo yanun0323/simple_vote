@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	_countdownDuration = 15 * time.Second
 
 	// Time allowed to write a message to the peer.
 	_writeWait = 10 * time.Second
@@ -37,7 +36,9 @@ type HostWsMessageIncoming struct {
 
 type (
 	HostWsMessageSetGameIncoming struct {
-		Candidates []*Candidate `json:"candidates"`
+		Candidates            []*Candidate `json:"candidates"`
+		Countdown             int64        `json:"countdown"`
+		DashboardDisplayLimit int          `json:"dashboard_display_limit"`
 	}
 	HostWsMessageRoundIncoming struct {
 		Round    int  `json:"round"`
@@ -277,6 +278,14 @@ func (h *Host) handleSetGame(room *Room, msg *HostWsMessageSetGameIncoming) {
 
 	room.StoreCandidates(m)
 
+	if msg.DashboardDisplayLimit != 0 {
+		room.dashboardPlayerDisplayLimit.Store(msg.DashboardDisplayLimit)
+	}
+
+	if msg.Countdown != 0 {
+		room.countdown.Store(time.Duration(msg.Countdown) * time.Second)
+	}
+
 	cs := room.GetCandidates()
 	ds := room.GetDashboard()
 
@@ -309,7 +318,7 @@ func (h *Host) handleRound(room *Room, msg *HostWsMessageRoundIncoming) {
 			h.l.Warn("skip round, game over")
 			return
 		case msg.Start:
-			endTime = time.Now().Add(_countdownDuration).UnixMilli()
+			endTime = time.Now().Add(room.countdown.Load()).UnixMilli()
 			room.Round.Store(msg.Round + 1)
 			room.RoundEndTime.Store(endTime)
 		default:
