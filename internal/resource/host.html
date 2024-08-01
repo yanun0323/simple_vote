@@ -140,6 +140,22 @@
             },
         },
         created() {
+            setInterval(() => {
+                if (this.ws == null) {
+                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                    return
+                }
+
+                switch (this.ws.readyState) {
+                    case WebSocket.CLOSING:
+                    case WebSocket.CLOSED:
+                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                        break;
+                    default:
+                        break;
+                }
+            }, 100)
+
             this.ws.onopen = () => {
                 console.log('ws open')
                 this.ws.send(JSON.stringify({
