@@ -50,12 +50,14 @@ type HostWsMessageOutgoing struct {
 	Connect   *HostWsMessageConnectResponse   `json:"connect,omitempty"`
 	Round     *HostWsMessageRoundResponse     `json:"round,omitempty"`
 	Dashboard *HostWsMessageDashboardResponse `json:"dashboard,omitempty"`
+	Player    *HostWsMessagePlayerResponse    `json:"player,omitempty"`
 	Timestamp int64                           `json:"timestamp"`
 }
 
 type (
 	HostWsMessageConnectResponse struct {
 		Dashboard []*Candidate `json:"dashboard"`
+		Player    []string     `json:"player"`
 		Round     int          `json:"round"`
 		EndTime   int64        `json:"end_time"`
 		GameOver  bool         `json:"game_over"`
@@ -70,6 +72,10 @@ type (
 	HostWsMessageDashboardResponse struct {
 		Dashboard []*Candidate `json:"dashboard"`
 		GameOver  bool         `json:"game_over"`
+	}
+
+	HostWsMessagePlayerResponse struct {
+		Player []string `json:"player"`
 	}
 )
 
@@ -141,6 +147,13 @@ func (h *Host) handleOutgoing(ctx context.Context, conn *websocket.Conn, room *R
 		select {
 		case <-ctx.Done():
 			return
+		case <-room.PlayerUpdate:
+			room.HostMsg <- HostWsMessageOutgoing{
+				Player: &HostWsMessagePlayerResponse{
+					Player: room.GetPlayerNames(),
+				},
+				Timestamp: time.Now().UnixMilli(),
+			}
 		case msg, ok := <-room.HostMsg:
 			conn.SetWriteDeadline(time.Now().Add(_writeWait))
 			if !ok {
@@ -237,6 +250,7 @@ func (h *Host) handleConnect(room *Room) {
 	room.HostMsg <- HostWsMessageOutgoing{
 		Connect: &HostWsMessageConnectResponse{
 			Dashboard: room.GetDashboard(),
+			Player:    room.GetPlayerNames(),
 			Round:     room.Round.Load(),
 			EndTime:   room.RoundEndTime.Load(),
 			GameOver:  room.IsGameOver.Load(),

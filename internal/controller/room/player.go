@@ -29,6 +29,7 @@ type Player struct {
 	l         logs.Logger
 	UID       string
 	Name      string
+	Online    *utils.SyncValue[bool]
 	Channel   chan PlayerWsMessageOutgoing
 	VoteTable *utils.SyncMap[int, string]
 }
@@ -38,6 +39,7 @@ func NewPlayer(uid string, name string) *Player {
 		l:         logs.New(logs.LevelDebug).WithField("player", uid),
 		UID:       uid,
 		Name:      name,
+		Online:    utils.NewSyncValue(false),
 		Channel:   make(chan PlayerWsMessageOutgoing, _defaultChannelSize),
 		VoteTable: utils.NewSyncMap[int, string](),
 	}
@@ -121,6 +123,8 @@ func ConnectPlayer() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		player.Online.Store(true)
+		room.PlayerUpdate <- struct{}{}
 		ctx, cancel := context.WithCancel(context.Background())
 
 		go player.handlePlayerIncoming(cancel, conn, room)
@@ -179,6 +183,8 @@ func (p *Player) handlePlayerIncoming(cancel context.CancelFunc, conn *websocket
 	defer func() {
 		conn.Close()
 		cancel()
+		p.Online.Store(false)
+		room.PlayerUpdate <- struct{}{}
 	}()
 	conn.SetReadLimit(_maxMessageSize)
 	conn.SetReadDeadline(time.Now().Add(_pongWait))
@@ -197,6 +203,7 @@ func (p *Player) handlePlayerIncoming(cancel context.CancelFunc, conn *websocket
 		}
 
 		if msgType == -1 {
+			p.l.Warn("disconnected")
 			break
 		}
 

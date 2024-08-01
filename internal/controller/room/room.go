@@ -18,6 +18,7 @@ type Room struct {
 	l            logs.Logger
 	RoomID       string
 	Title        string
+	PlayerUpdate chan struct{}
 	HostMsg      chan HostWsMessageOutgoing
 	Round        *utils.SyncValue[int]
 	RoundEndTime *utils.SyncValue[int64]
@@ -33,6 +34,7 @@ func NewRoom(roomID string, title string) *Room {
 		l:            logs.New(logs.LevelDebug).WithField("room", roomID),
 		RoomID:       roomID,
 		Title:        title,
+		PlayerUpdate: make(chan struct{}, _defaultChannelSize),
 		HostMsg:      make(chan HostWsMessageOutgoing, _defaultChannelSize),
 		Round:        utils.NewSyncValue(0),
 		RoundEndTime: utils.NewSyncValue[int64](0),
@@ -87,6 +89,18 @@ func (r *Room) AddPlayer(player *Player) {
 
 func (r *Room) GetPlayer(uid string) (*Player, bool) {
 	return r.playerTable.Load(uid)
+}
+
+func (r *Room) GetPlayerNames() []string {
+	sli := r.playerTable.ValueSlice()
+	names := make([]string, 0, _defaultChannelSize)
+	for _, player := range sli {
+		if player.Online.Load() {
+			names = append(names, player.Name)
+		}
+	}
+
+	return names
 }
 
 func (r *Room) GetDashboard() []*Candidate {
