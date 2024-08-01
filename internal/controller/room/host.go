@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	_countdownDuration = 5 * time.Second
+	_countdownDuration = 15 * time.Second
 
 	// Time allowed to write a message to the peer.
 	_writeWait = 10 * time.Second
