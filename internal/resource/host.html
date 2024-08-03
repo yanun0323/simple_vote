@@ -21,9 +21,11 @@
                 ws: new WebSocket('%WSS%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/host'),
                 uid: localStorage.getItem('uid'),
                 round: 0,
+                roundInitTime: 0, 
                 roundEndTime: Date.now(),
-                gameOver: false,
                 leftTime: 0,
+                leftTimeRatio: 0,
+                gameOver: false,
                 setCountdownSeconds: 60,
                 countdownID: 0,
                 dashboard: [],
@@ -35,8 +37,8 @@
                     {name:'大衛牧師 瑋筠', order: 3},
                     {name:'張明俊 張芸禎', order: 4},
                     {name:'康明叔叔 美瑜', order: 5},
-                    {name:'米豆家 ', order: 7},
-                    {name:'吳慶章 葉裕猷 葉允霏', order: 8}
+                    {name:'米豆家 ', order: 6},
+                    {name:'吳慶章 葉裕猷 葉允霏', order: 7}
                 ]
             }
         },
@@ -125,11 +127,18 @@
                     return
                 }
 
+                this.roundInitTime = (this.roundEndTime - Date.now())
+
                 this.countdownID = setInterval(() => {
+                    if (this.roundInitTime < 0) {
+                        this.roundInitTime = (this.roundEndTime - Date.now())
+                    }
                     // console.log('countdown', this.roundEndTime - Date.now())
                     this.leftTime = this.roundEndTime - Date.now()
+                    this.leftTimeRatio = (this.leftTime / this.roundInitTime)*100
                     if (this.leftTime && this.leftTime <= 500) {
                         this.leftTime = 0
+                        this.leftTimeRatio = 100
                         // console.log('countdown clearInterval!!')
                         if (this.countdownID && this.countdownID != 0) { 
                             let id = this.countdownID
@@ -167,6 +176,7 @@
             handleRoundMsg(msg) {
                 this.round = (msg.round == null || msg.round == 0) ? this.round : msg.round
                 this.roundEndTime = (msg.end_time == null || msg.end_time == 0) ? this.roundEndTime : msg.end_time
+                this.roundInitTime = (msg.end_time == null || msg.end_time == 0) ? this.roundInitTime : (msg.end_time - Date.now()) / 1000
                 this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
                 this.countdown()
             },
@@ -435,6 +445,36 @@
         display: block;
         height: 10vh;
     }
+
+    .progressbar {
+        position: relative;
+        width: 90%;
+        height: 48px;
+        height: 3vh;
+        margin: 0 auto;
+        background-color: #801b04;
+        border-radius: 20px;
+        border: 4px solid #801b04;
+    }
+
+    .progressbar-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+
+    .progressbar-inner {
+        height: 48px;
+        height: 3vh;
+        border-radius: 15px;
+        background: linear-gradient(to right, #f05b44, #f06b54);
+        box-shadow: 0 1px 2px 0 rgba(255,255,0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
+    }
+
 </style>
 
 <body>
@@ -527,7 +567,11 @@
     
         <div v-if="isVoting">
             <h3>第 {{ round }} 輪投票中</h3>
-            <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
+
+            <div class="progressbar">
+                <h4 class="progressbar-text" style="margin: 0"> {{ Math.trunc(leftTime/1000) }} 秒</h4>
+                <div class="progressbar-inner" :style="{'width': leftTimeRatio+'%'}"></div>
+            </div>
         </div>
         <div v-else-if="gameOver">
             <h3>投票已結束</h3>
