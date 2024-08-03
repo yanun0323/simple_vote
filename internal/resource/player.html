@@ -18,7 +18,7 @@
     createApp({
         data() {
             return {
-                ws: new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player'),
+                ws: new WebSocket('%WSS%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player'),
                 uid: localStorage.getItem('uid'),
                 playerName: '',
                 message: '初始化',
@@ -136,7 +136,7 @@
             
             setInterval(() => {
                 if (this.ws == null) {
-                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                    this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                 }
 
                 switch (this.ws.readyState) {
@@ -156,7 +156,7 @@
                         this.playerName = ''
                         this.roundVoted = ''
                         this.message = '連線已關閉，重新連線中...'
-                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                        this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                         break;
                     default:
                         this.message = '未知的狀態'

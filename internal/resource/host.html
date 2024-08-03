@@ -18,7 +18,7 @@
     createApp({
         data() {
             return {
-                ws: new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/host'),
+                ws: new WebSocket('%WSS%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/host'),
                 uid: localStorage.getItem('uid'),
                 round: 0,
                 roundEndTime: Date.now(),
@@ -198,13 +198,12 @@
 
             setInterval(() => {
                 if (this.ws == null) {
-                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
-                    return
+                    this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                 }
 
                 switch (this.ws.readyState) {
-                    case WebSocket.CLOSING, WebSocket.CLOSED:
-                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                    case WebSocket.CLOSED:
+                        this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                         break;
                     default:
                         break;
@@ -439,7 +438,6 @@
 </style>
 
 <body>
-    <div> TEST</div>
     <div id="app" class="app">
         <h1 class="accentColor"> %ROOM_TITLE% </h1>
     

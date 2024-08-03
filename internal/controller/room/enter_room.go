@@ -28,6 +28,7 @@ func EnterRoom() func(w http.ResponseWriter, r *http.Request) {
 			// HINT: Player's Page
 			w.Write(utils.ReadFile("./internal/resource/player.html", map[string]string{
 				keyword.Host:      viper.GetString("host"),
+				keyword.Wss:       viper.GetString("wss"),
 				keyword.RoomID:    room.RoomID,
 				keyword.RoomTitle: room.Title,
 			}))
@@ -52,6 +53,7 @@ func EnterRoom() func(w http.ResponseWriter, r *http.Request) {
 		w.Write(utils.ReadFile("./internal/resource/host.html", map[string]string{
 			keyword.QRCode:    qrcImg,
 			keyword.Host:      viper.GetString("host"),
+			keyword.Wss:       viper.GetString("wss"),
 			keyword.RoomLink:  url,
 			keyword.RoomID:    room.RoomID,
 			keyword.RoomTitle: room.Title,

@@ -2,6 +2,7 @@ package keyword
 
 const (
 	Host            = "%HOST%"
+	Wss             = "%WSS%"
 	UID             = "%UID%"
 	QRCode          = "%QRCODE%"
 	RoomLink        = "%ROOM_LINK%"
