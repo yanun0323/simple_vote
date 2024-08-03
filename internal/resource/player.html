@@ -18,7 +18,7 @@
     createApp({
         data() {
             return {
-                ws: new WebSocket('%WSS%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player'),
+                ws: null,
                 uid: localStorage.getItem('uid'),
                 playerName: '',
                 message: '初始化',
@@ -128,23 +128,6 @@
             },
         },
         created() {
-            this.ws.onopen = () => {
-                console.log('ws open')
-                this.ws.send(JSON.stringify({
-                    connect: true,
-                }))
-            }
-            this.ws.onmessage = (msg) => {
-                let data = JSON.parse(msg.data)
-                console.log('ws message data', data)
-                this.handleWsReceiveData(data)
-            }
-
-            this.ws.onclose = () => {
-                this.connected = false
-                console.log('ws close')
-            }   
-            
             setInterval(() => {
                 if (this.ws == null) {
                     this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
@@ -174,6 +157,23 @@
                         break;
                 }
             }, 100)
+
+            this.ws.onopen = () => {
+                console.log('ws open')
+                this.ws.send(JSON.stringify({
+                    connect: true,
+                }))
+            }
+            this.ws.onmessage = (msg) => {
+                let data = JSON.parse(msg.data)
+                console.log('ws message data', data)
+                this.handleWsReceiveData(data)
+            }
+
+            this.ws.onclose = () => {
+                this.connected = false
+                console.log('ws close')
+            }   
         },
     }).mount('#app')
 </script>
