@@ -144,6 +144,18 @@ func (p *Player) handlePlayerOutgoing(ctx context.Context, conn *websocket.Conn)
 		case <-ctx.Done():
 			return
 		case msg, ok := <-p.Channel:
+			if msg.Connect != nil && len(msg.Connect.Dashboard) > 3 {
+				msg.Connect.Dashboard = msg.Connect.Dashboard[:3]
+			}
+
+			if msg.Round != nil && len(msg.Round.Dashboard) > 3 {
+				msg.Round.Dashboard = msg.Round.Dashboard[:3]
+			}
+
+			if msg.Dashboard != nil && len(msg.Dashboard.Dashboard) > 3 {
+				msg.Dashboard.Dashboard = msg.Dashboard.Dashboard[:3]
+			}
+
 			conn.SetWriteDeadline(time.Now().Add(_writeWait))
 			if !ok {
 				// The hub closed the channel.
