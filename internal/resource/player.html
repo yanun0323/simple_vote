@@ -21,7 +21,7 @@
                 ws: new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player'),
                 uid: localStorage.getItem('uid'),
                 playerName: '',
-                message: '',
+                message: '初始化',
                 round: 0,
                 roundVoted: '',
                 roundEndTime: Date.now(),
@@ -30,6 +30,7 @@
                 countdownID: 0,
                 dashboard: [],
                 candidates: [],
+                connected: false,
             }
         },
         computed: {
@@ -129,21 +130,36 @@
             }
 
             this.ws.onclose = () => {
+                this.connected = false
                 console.log('ws close')
             }   
             
             setInterval(() => {
                 if (this.ws == null) {
                     this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
-                    return
                 }
 
                 switch (this.ws.readyState) {
+                    case WebSocket.CONNECTING:
+                        this.connected = false
+                        this.message = '正在連線中...'
+                        break;
+                    case WebSocket.OPEN:
+                        this.connected = true
+                        this.message = '已連線'
+                        break;
                     case WebSocket.CLOSING:
+                        this.connected = false
+                        this.message = '關閉中...'
+                        break;
                     case WebSocket.CLOSED:
+                        this.playerName = ''
+                        this.roundVoted = ''
+                        this.message = '連線已關閉，重新連線中...'
                         this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                         break;
                     default:
+                        this.message = '未知的狀態'
                         break;
                 }
             }, 100)
@@ -362,7 +378,7 @@
     .pressed, .unpressed:active {
         background: linear-gradient(to bottom right, #c04f3d, #f05b44);
         border-block-start: 5px solid #801b04;
-        margin-block-start: -15px;
+        margin-block-start: 0px;
         border-block-end: 0px solid transparent;
         color: #f0ab94;
         top: 5px;
@@ -377,43 +393,50 @@
 
 
     <div id="app" class="app">
-        <h1 class="accentColor"> %ROOM_TITLE% </h1>
-        <h3> {{ playerName }} </h3>
-        <div v-if="gameOver">
-            <h2 class="accentColor">投票已結束 </h2>
-        </div>
-        <div v-else-if="round == 0">
-            <h2 class="accentColor">等待投票開始...</h2>
-        </div>
-        <div v-else-if="leftTime == 0">
-            <h2 class="accentColor">等待下一輪投票...</h2>
+        <div v-if="!connected">
+            <h1 class="accentColor"> %ROOM_TITLE% </h1>
+            <h2 class="accentColor">{{ message }}</h2>
         </div>
         <div v-else>
-            <h3>第 {{ round }} 輪投票中...</h3>
-            <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
-        </div>
-
-        <div v-if="gameOver || leftTime == 0">
-            <div v-if="round != 0">
-                <br/>
-                <h2 v-if="gamOver">投票結果：</h2>
-                <h2 v-else>第 {{ round }} 輪結果：</h2>
+            <h1 class="accentColor"> %ROOM_TITLE% </h1>
+            <h3> {{ playerName }} </h3>
+            <div v-if="gameOver">
+                <h2 class="accentColor">投票已結束 </h2>
+            </div>
+            <div v-else-if="round == 0">
+                <h2 class="accentColor">等待投票開始...</h2>
+            </div>
+            <div v-else-if="leftTime == 0">
+                <h2 class="accentColor">等待下一輪投票...</h2>
+            </div>
+            <div v-else>
+                <h3>第 {{ round }} 輪投票中...</h3>
+                <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
+            </div>
+            
+            <div v-if="gameOver || leftTime == 0">
+                <div v-if="round != 0">
+                    <br />
+                    <h2 v-if="gamOver">投票結果：</h2>
+                    <h2 v-else>第 {{ round }} 輪結果：</h2>
+                    <ul>
+                        <li v-for="d in dashboard" :key="d.score" class="text-li">
+                            <h3 class="margin">&emsp;{{ d.score }} 分&emsp;{{ d.name }}</h3>
+                        </li>
+                    </ul>
+                </div>
+                <div v-else></div>
+            </div>
+            <div v-else>
                 <ul>
-                    <li v-for="d in dashboard" :key="d.score" class="text-li">
-                        <h3 class="margin">&emsp;{{ d.score }} 分&emsp;{{ d.name }}</h3>
+                    <li v-for="candidate in candidates" :key="candidate.order" class="press-button-li">
+                        <button type="button" @mouseup="vote(candidate.id)" @touchstart="vote(candidate.id)"
+                            class="press-button round margin" :class="(candidate.id == roundVoted) ? 'pressed' : 'unpressed'">
+                            <span>{{ candidate.name }}</span>
+                        </button>
                     </li>
                 </ul>
             </div>
-            <div v-else></div> 
-        </div>
-        <div v-else>
-            <ul>
-                <li v-for="candidate in candidates" :key="candidate.order" class="press-button-li">
-                    <button type="button" @mouseup="vote(candidate.id)" @touchstart="vote(candidate.id)" class="press-button round margin" :class="(candidate.id == roundVoted) ? 'pressed' : 'unpressed'">
-                        <span>{{ candidate.name }}</span>
-                    </button>
-                </li>
-            </ul>
         </div>
     </div>
 </body>
