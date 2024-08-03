@@ -24,18 +24,17 @@
                 roundEndTime: Date.now(),
                 gameOver: false,
                 leftTime: 0,
-                setCountdownSeconds: 15,
+                setCountdownSeconds: 60,
                 countdownID: 0,
                 dashboard: [],
                 onlinePlayers: [],
                 candidates: [
                     {name:'明逵叔叔 相恩', order: 0},
-                    {name:'海文叔叔 睿馨', order: 1},
-                    {name:'程偉恩 程宇昕', order: 2},
-                    {name:'靖唐叔叔 慕桓', order: 3},
-                    {name:'大衛牧師 書毅', order: 4},
-                    {name:'張明俊 張芸禎', order: 5},
-                    {name:'康明叔叔 美瑜', order: 6},
+                    {name:'程偉恩 程宇昕', order: 1},
+                    {name:'靖唐叔叔 慕桓', order: 2},
+                    {name:'大衛牧師 瑋筠', order: 3},
+                    {name:'張明俊 張芸禎', order: 4},
+                    {name:'康明叔叔 美瑜', order: 5},
                     {name:'米豆家 ', order: 7},
                     {name:'吳慶章 葉裕猷 葉允霏', order: 8}
                 ]
@@ -55,10 +54,12 @@
                         return '15秒'
                     case 30:
                         return '30秒'
+                    case 60:
+                        return '60秒'
+                    case 180:
+                        return '3分鐘'
                     case 3600:
                         return '1小時'
-                    case 86400:
-                        return '1天'
                     default:
                         return this.setCountdownSeconds + '秒'
                 }
@@ -242,7 +243,12 @@
         --bg-pos-linear: 0 calc(var(--bg-mid) + var(--bg-base) * .5);
     }
 
+    .bg {
+        position: relative;
+    }
+
     body {
+        position: relative;
         font-family: "Noto Sans TC", monospace, sans-serif;
         font-optical-sizing: auto;
         font-style: normal;
@@ -266,7 +272,7 @@
             var(--bg-size),
             var(--bg-size),
             var(--bg-size),
-            100vw 100vh;
+            100vw 500vh;
 
         background-color: var(--col-2);
         background-position:
@@ -386,11 +392,10 @@
     }
 
     .app {
-        position: absolute;
-        top: 50%;
-        left: 50%;
         width: 100%;
-        transform: translate(-50%, -50%);
+        height: 48px;
+        height: 100vh;
+        margin-bottom: 30px;
     }
 
     .round {
@@ -421,12 +426,17 @@
         top: 5px;
         position: relative;
     }
+
+    .scroll-block {
+        display: block;
+        height: 10vh;
+    }
 </style>
 
 <body>
     <div id="app" class="app">
         <h1 class="accentColor"> %ROOM_TITLE% </h1>
-
+    
         <!-- round start -->
         <div v-if="round != 0 || gameOver">
             <h3>投票倒數秒數設定 {{ countdownDisplay }} </h3>
@@ -445,28 +455,31 @@
             </button>
             <!-- <h4>%ROOM_LINK%</h4> -->
             <br />
-
-            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始投票</button>
-
+    
+            <button @mouseup="startVote" @touchstart="startVote"
+                class="shadow margin hardPadding round h3 unpressed">開始投票</button>
+    
             <h3>已加入玩家：</h3>
-            <ul>
-                <li v-for="player in onlinePlayers" :key="player" class="text-li">
-                    <h3 class="margin">{{ player }}</h3>
-                </li>
-            </ul>
-            <br/>
+            <div class="scroll-block">
+                <ul>
+                    <li v-for="player in onlinePlayers" :key="player" class="text-li">
+                        <h3 class="margin">{{ player }}</h3>
+                    </li>
+                </ul>
+            </div>
+            <br />
             <h4>
                 設定投票倒數：
                 <div class="inBlock">
                     <input type="radio" id="3" value=3 v-model="setCountdownSeconds" />
                     <label for="3">3秒</label>
                 </div>
-
+    
                 <div class="inBlock">
                     <input type="radio" id="5" value=5 v-model="setCountdownSeconds" />
                     <label for="5">5秒</label>
                 </div>
-
+    
                 <div class="inBlock">
                     <input type="radio" id="15" value=15 v-model="setCountdownSeconds" />
                     <label for="15">15秒</label>
@@ -476,49 +489,54 @@
                     <input type="radio" id="30" value=30 v-model="setCountdownSeconds" />
                     <label for="30">30秒</label>
                 </div>
-
+    
                 <div class="inBlock">
-                    <input type="radio" id="3600" value=3600 v-model="setCountdownSeconds" />
-                    <label for="3600">1小時</label>
+                    <input type="radio" id="60" value=60 v-model="setCountdownSeconds" />
+                    <label for="60">1分鐘</label>
                 </div>
 
                 <div class="inBlock">
-                    <input type="radio" id="86400" value=86400 v-model="setCountdownSeconds" />
-                    <label for="86400">1天</label>
+                    <input type="radio" id="180" value=180 v-model="setCountdownSeconds" />
+                    <label for="180">3分鐘</label>
                 </div>
             </h4>
-
+    
             <h4>
                 候選人：
-                <button @mouseup="addCandidate" @touchstart="addCandidate" class="inBlock shadow softPadding" > + </button>
+                <button @mouseup="addCandidate" @touchstart="addCandidate" class="inBlock shadow softPadding"> + </button>
             </h4>
-            <ul>
-                <li v-for="candidate in candidates" :key="candidate.order">
-                    <h3>
-                        {{ candidate.order }}.
-                        <input class="round margin" v-model="candidate.name" required placeholder="候選人姓名">
-                        <button @mouseup="removeCandidate(candidate.order)" @touchstart="removeCandidate(candidate.order)" class="inBlock shadow softPadding" > - </button>
-                    </h3>
-                </li>
-            </ul>
+            <div class="scroll-block">
+                <ul>
+                    <li v-for="candidate in candidates" :key="candidate.order">
+                        <h3>
+                            {{ candidate.order }}.
+                            <input class="round margin" v-model="candidate.name" required placeholder="候選人姓名">
+                            <button @mouseup="removeCandidate(candidate.order)" @touchstart="removeCandidate(candidate.order)"
+                                class="inBlock shadow softPadding"> - </button>
+                        </h3>
+                    </li>
+                </ul>
+            </div>
         </div>
-
-        <br class=".h3"/>
-
+    
+        <br class=".h3" />
+    
         <div v-if="isVoting">
             <h3>第 {{ round }} 輪投票中</h3>
             <h3>剩餘 {{ leftTime/1000 }} 秒</h3>
         </div>
         <div v-else-if="gameOver">
             <h3>投票已結束</h3>
-        </div> 
+        </div>
         <div v-else-if="round != 0">
-            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始第 {{ round + 1 }} 輪投票</button>
+            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始第 {{
+                round + 1 }} 輪投票</button>
             <br class=".h5" />
-            <button @mouseup="endGame" @touchstart="endGame" class="shadow margin hardPadding round h3 unpressed">結束投票，結算分數</button>
+            <button @mouseup="endGame" @touchstart="endGame"
+                class="shadow margin hardPadding round h3 unpressed">結束投票，結算分數</button>
         </div>
         <div v-else></div>
-
+    
         <div v-if="round != 0">
             <h3>在線玩家：</h3>
             <ul>
@@ -526,11 +544,8 @@
                     <h3 class="margin">{{ player }}</h3>
                 </li>
             </ul>
-        </div> 
+        </div>
         <div v-else></div>
-        
-        <!-- <p> {{ leftTime }} </p> -->
-        <!-- <p> {{ gameOver }} </p> -->
     </div>
 </body>
 </html>
