@@ -380,11 +380,11 @@
     }
 
     .softPadding {
-        padding: 8px auto;
+        padding: 2px 8px;
     }
 
     .margin {
-        margin: 2.5px auto;
+        margin: 2.5px;
     }
 
     .gap {
@@ -402,6 +402,10 @@
         border-radius: 15px;
     }
 
+    .round-s {
+        border-radius: 4px;
+    }
+
     .shadow {
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
     }
@@ -409,6 +413,7 @@
     .inBlock {
         display: inline-block;
     }
+    
 
     .unpressed {
         background: linear-gradient(to bottom right, #f05b44, #f06b54);
@@ -434,6 +439,7 @@
 </style>
 
 <body>
+    <div> TEST</div>
     <div id="app" class="app">
         <h1 class="accentColor"> %ROOM_TITLE% </h1>
     
@@ -503,7 +509,7 @@
     
             <h4>
                 候選人：
-                <button @mouseup="addCandidate" @touchstart="addCandidate" class="inBlock shadow softPadding"> + </button>
+                <button @mouseup="addCandidate" @touchstart="addCandidate" class="inBlock shadow softPadding round-s"> + </button>
             </h4>
             <div class="scroll-block">
                 <ul>
@@ -512,7 +518,7 @@
                             {{ candidate.order }}.
                             <input class="round margin" v-model="candidate.name" required placeholder="候選人姓名">
                             <button @mouseup="removeCandidate(candidate.order)" @touchstart="removeCandidate(candidate.order)"
-                                class="inBlock shadow softPadding"> - </button>
+                                class="inBlock shadow softPadding round-s"> - </button>
                         </h3>
                     </li>
                 </ul>
