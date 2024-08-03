@@ -206,17 +206,30 @@
     .shadow {
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
     }
+
+    .unpressed {
+        background: linear-gradient(to bottom right, #f05b44, #f06b54);
+        border-block-start: 0px solid #801b04;
+        border-block-end: 5px solid #801b04;
+        color: white;
+    }
+
+    .pressed, .unpressed:active {
+        background: linear-gradient(to bottom right, #c04f3d, #f05b44);
+        border-block-start: 5px solid #801b04;
+        margin-block-start: -15px;
+        border-block-end: 0px solid transparent;
+        color: #f0ab94;
+        top: 5px;
+        position: relative;
+    }
 </style>
 
 <body>
     <div id="app" class="app">
         <h1 class="accentColor"> 今天想投什麼？ </h1>
         <input class="h2 softPadding gap round" v-model="room_title" required placeholder="誰最可愛？">
-        <button type="button" class="h3 hardPadding round shadow margin" @mouseup="createRoom" @touchstart="createRoom">建立投票房間</button>
-
-        <!-- <p>user: {{ uid }}</p>
-        <p>room: {{ room_title }}</p>
-        <p><button @click="getUID">Get UID</button></p> -->
+        <button type="button" class="h3 hardPadding round shadow margin unpressed" @mouseup="createRoom" @touchstart="createRoom">建立投票房間</button>
     </div>
 </body>
 

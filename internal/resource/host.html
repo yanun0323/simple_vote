@@ -125,11 +125,11 @@
                 }
 
                 this.countdownID = setInterval(() => {
-                    console.log('countdown', this.roundEndTime - Date.now())
+                    // console.log('countdown', this.roundEndTime - Date.now())
                     this.leftTime = this.roundEndTime - Date.now()
                     if (this.leftTime && this.leftTime <= 500) {
                         this.leftTime = 0
-                        console.log('countdown clearInterval!!')
+                        // console.log('countdown clearInterval!!')
                         if (this.countdownID && this.countdownID != 0) { 
                             let id = this.countdownID
                             this.countdownID = 0
@@ -178,21 +178,6 @@
             },
         },
         created() {
-            setInterval(() => {
-                if (this.ws == null) {
-                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
-                    return
-                }
-
-                switch (this.ws.readyState) {
-                    case WebSocket.CLOSING, WebSocket.CLOSED:
-                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
-                        break;
-                    default:
-                        break;
-                }
-            }, 100)
-
             this.ws.onopen = () => {
                 console.log('ws open')
                 this.ws.send(JSON.stringify({
@@ -209,6 +194,21 @@
             this.ws.onclose = () => {
                 console.log('ws close')
             }
+
+            setInterval(() => {
+                if (this.ws == null) {
+                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                    return
+                }
+
+                switch (this.ws.readyState) {
+                    case WebSocket.CLOSING, WebSocket.CLOSED:
+                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                        break;
+                    default:
+                        break;
+                }
+            }, 100)
         },
     }).mount('#app')
 </script>
@@ -404,6 +404,23 @@
     .inBlock {
         display: inline-block;
     }
+
+    .unpressed {
+        background: linear-gradient(to bottom right, #f05b44, #f06b54);
+        border-block-start: 0px solid #801b04;
+        border-block-end: 5px solid #801b04;
+        color: white;
+    }
+
+    .pressed, .unpressed:active {
+        background: linear-gradient(to bottom right, #c04f3d, #f05b44);
+        border-block-start: 5px solid #801b04;
+        margin-block-start: -15px;
+        border-block-end: 0px solid transparent;
+        color: #f0ab94;
+        top: 5px;
+        position: relative;
+    }
 </style>
 
 <body>
@@ -486,9 +503,9 @@
             <h3>投票已結束</h3>
         </div> 
         <div v-else>
-            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3">開始第 {{ round + 1 }} 輪投票</button>
+            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始第 {{ round + 1 }} 輪投票</button>
             <br class=".h5" />
-            <button @mouseup="endGame" @touchstart="endGame" class="shadow margin hardPadding round h3">結束投票，結算分數</button>
+            <button @mouseup="endGame" @touchstart="endGame" class="shadow margin hardPadding round h3 unpressed">結束投票，結算分數</button>
         </div>
 
         <h3>在線玩家：</h3>

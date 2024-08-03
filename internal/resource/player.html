@@ -35,10 +35,17 @@
         computed: {
             canVote() {
                 return this.leftTime > 500 && this.roundVoted == ''
-            },
+            }
         },
         methods: {
             vote(id) {
+                if (!this.canVote) {
+                    console.log('vote: can not vote') 
+                    return
+                }
+
+                console.log('vote:', id)
+
                 this.roundVoted = id
                 this.ws.send(JSON.stringify({
                     vote: {
@@ -57,11 +64,11 @@
                 }
 
                 this.countdownID = setInterval(() => {
-                    console.log('countdown', this.roundEndTime - Date.now())
+                    // console.log('countdown', this.roundEndTime - Date.now())
                     this.leftTime = this.roundEndTime - Date.now()
                     if (this.leftTime && this.leftTime <= 500) {
                         this.leftTime = 0
-                        console.log('countdown clearInterval!!')
+                        // console.log('countdown clearInterval!!')
                         if (this.countdownID && this.countdownID != 0) {
                             let id = this.countdownID
                             this.countdownID = 0
@@ -109,22 +116,6 @@
             },
         },
         created() {
-            setInterval(() => {
-                if (this.ws == null) {
-                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player')
-                    return
-                }
-
-                switch (this.ws.readyState) {
-                    case WebSocket.CLOSING:
-                    case WebSocket.CLOSED:
-                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/'+ localStorage.getItem('uid') +'/player')
-                        break;
-                    default:
-                        break;
-                }
-            }, 100)
-
             this.ws.onopen = () => {
                 console.log('ws open')
                 this.ws.send(JSON.stringify({
@@ -140,6 +131,22 @@
             this.ws.onclose = () => {
                 console.log('ws close')
             }   
+            
+            setInterval(() => {
+                if (this.ws == null) {
+                    this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                    return
+                }
+
+                switch (this.ws.readyState) {
+                    case WebSocket.CLOSING:
+                    case WebSocket.CLOSED:
+                        this.ws = new WebSocket('%HOST%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                        break;
+                    default:
+                        break;
+                }
+            }, 100)
         },
     }).mount('#app')
 </script>
@@ -281,7 +288,6 @@
 
     button {
         border: none;
-        background-color: #f05b44;
         color: white;
         display: inline-block;
         cursor: pointer;
@@ -327,31 +333,51 @@
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1), 0 2px 5px 0 rgba(0, 0, 0, 0.19);
     }
 
-    .block-button-li {
+    .press-button-li {
         display: inline-block;
-        margin: 5px;
     }
 
-    .block-button {
-        background: linear-gradient(to bottom right, #f05b44, #f06b54);
-        width: 48px;
-        width: 12vh;
+    .press-button {
         height: 48px;
-        height: 16vh;
+        height: 10vh;
+        width: 48px;
+        width: 40vw;
+        padding: 0 10px;
+        margin: 1vw;
         border: none;
-        color: white;
-        padding: 3px 3px;
         text-align: center;
+        text-overflow: ellipsis;
         text-decoration: none;
         display: inline-block;
         font-size: 48px;
         font-size: 3vh;
         cursor: pointer;
     }
+
+    .unpressed {
+        background: linear-gradient(to bottom right, #f05b44, #f06b54);
+        border-block-start: 0px solid #801b04;
+        border-block-end: 5px solid #801b04;
+        color: white;
+    }
+
+    .pressed, .unpressed:active {
+        background: linear-gradient(to bottom right, #c04f3d, #f05b44);
+        border-block-start: 5px solid #801b04;
+        margin-block-start: -15px;
+        border-block-end: 0px solid transparent;
+        color: #f0ab94;
+        top: 5px;
+        position: relative;
+    }
     
 </style>
 
 <body>
+    <!-- <button type="button" class="press-button round margin unpressed">123</button>  -->
+    <!-- <button type="button" class="press-button round margin pressed">123</button>  -->
+
+
     <div id="app" class="app">
         <h1 class="accentColor"> %ROOM_TITLE% </h1>
         <h3> {{ playerName }} </h3>
@@ -384,9 +410,8 @@
         </div>
         <div v-else>
             <ul>
-                <li v-for="candidate in candidates" :key="candidate.order" class="block-button-li">
-                    <button class="block-button round shadow" @mouseup="vote(candidate.id)" @touchstart="vote(candidate.id)" :disabled="!canVote"
-                        :style="{ opacity: (canVote || candidate.id == roundVoted) ? 1 : 0.3 }">
+                <li v-for="candidate in candidates" :key="candidate.order" class="press-button-li">
+                    <button type="button" @mouseup="vote(candidate.id)" @touchstart="vote(candidate.id)" class="press-button round margin" :class="(candidate.id == roundVoted) ? 'pressed' : 'unpressed'">
                         <span>{{ candidate.name }}</span>
                     </button>
                 </li>
