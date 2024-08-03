@@ -126,9 +126,7 @@
                 this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
                 this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
             },
-        },
-        created() {
-            setInterval(() => {
+            connectWss() {
                 if (this.ws == null) {
                     this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                 }
@@ -156,7 +154,14 @@
                         this.message = '未知的狀態'
                         break;
                 }
+            }
+        },
+        created() {
+            setInterval(() => {
+                this.connectWss()
             }, 100)
+
+            this.connectWss()
 
             this.ws.onopen = () => {
                 console.log('ws open')
