@@ -285,7 +285,7 @@
 
     img {
         width: 100px;
-        width: 30vw;
+        width: 45vw;
     }
 
     h1,
@@ -444,7 +444,17 @@
                 <img src="data:image/png;base64, %QRCODE%" alt="" />
             </button>
             <!-- <h4>%ROOM_LINK%</h4> -->
-            
+            <br />
+
+            <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始投票</button>
+
+            <h3>已加入玩家：</h3>
+            <ul>
+                <li v-for="player in onlinePlayers" :key="player" class="text-li">
+                    <h3 class="margin">{{ player }}</h3>
+                </li>
+            </ul>
+            <br/>
             <h4>
                 設定投票倒數：
                 <div class="inBlock">
@@ -502,18 +512,22 @@
         <div v-else-if="gameOver">
             <h3>投票已結束</h3>
         </div> 
-        <div v-else>
+        <div v-else-if="round != 0">
             <button @mouseup="startVote" @touchstart="startVote" class="shadow margin hardPadding round h3 unpressed">開始第 {{ round + 1 }} 輪投票</button>
             <br class=".h5" />
             <button @mouseup="endGame" @touchstart="endGame" class="shadow margin hardPadding round h3 unpressed">結束投票，結算分數</button>
         </div>
+        <div v-else></div>
 
-        <h3>在線玩家：</h3>
-        <ul>
-            <li v-for="player in onlinePlayers" :key="player" class="text-li">
-                <h3 class="margin">{{ player }}</h3>
-            </li>
-        </ul>
+        <div v-if="round != 0">
+            <h3>在線玩家：</h3>
+            <ul>
+                <li v-for="player in onlinePlayers" :key="player" class="text-li">
+                    <h3 class="margin">{{ player }}</h3>
+                </li>
+            </ul>
+        </div> 
+        <div v-else></div>
         
         <!-- <p> {{ leftTime }} </p> -->
         <!-- <p> {{ gameOver }} </p> -->
