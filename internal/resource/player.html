@@ -126,8 +126,11 @@
                 this.dashboard = (msg.dashboard == null || msg.dashboard == []) ? this.dashboard : msg.dashboard
                 this.gameOver = (msg.game_over == null || msg.game_over == false) ? this.gameOver : msg.game_over
             },
-            connectWss() {
+            connectWss(force) {
                 if (this.ws == null) {
+                    this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
+                } else if (force) {
+                    this.ws.close()
                     this.ws = new WebSocket('%WSS%/api/vote/%ROOM_ID%/' + localStorage.getItem('uid') + '/player')
                 }
 
